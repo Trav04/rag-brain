@@ -21,12 +21,13 @@ export class ObsidianVaultProcessor {
           apiKey?: string;
           collectionName: string;
       },
-      private chunkSize: number = 1000
+      private chunkSize: number = 1000,
+      private chunkOverlap: number = 200
     ) {
       this.loader = new GeminiLoader(this.vaultPath, this.geminiApiKey);
       this.splitter = new RecursiveCharacterTextSplitter({
           chunkSize: this.chunkSize,
-          chunkOverlap: 200
+          chunkOverlap: this.chunkOverlap
       });
       this.qdrantClient = new QdrantClient({
           url: qdrantConfig.url,
@@ -38,7 +39,9 @@ export class ObsidianVaultProcessor {
       });
     }
 
-    public async initializeVectorStore(): Promise<void> { // Process documents and store all intial docs into qdrant
+    public async indexVault(): Promise<void> { 
+      // Process documents and store all intial docs into qdrant
+      // Creates a qdrant collection and stores all vectors
         const documents = await this.loadDocuments();
         const splitDocs = await this.splitter.splitDocuments(documents);
         
@@ -53,7 +56,9 @@ export class ObsidianVaultProcessor {
               }
           });
         }
-        // Create vector store
+        // Create vector store from initial documents
+        // TODO Make it so that only new documents are added to the vector store.
+        // TODO Make this operate as an initalise button in the plugin only
         this.vectorStore = await QdrantVectorStore.fromDocuments(
           splitDocs,
           this.embeddings,
@@ -81,5 +86,12 @@ export class ObsidianVaultProcessor {
 
     public async clearCollection(): Promise<void> {
         await this.qdrantClient.deleteCollection(this.qdrantConfig.collectionName);
+    }
+
+    public async getVectorStore(): Promise<QdrantVectorStore> {
+      if (this.vectorStore) {
+        return this.vectorStore;
+      }
+      throw new Error("No vector store initialised")
     }
 }
