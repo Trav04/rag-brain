@@ -7,7 +7,8 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { Annotation } from "@langchain/langgraph";
 import { StateGraph } from "@langchain/langgraph";
 import { QdrantVectorStore } from "@langchain/qdrant";
-
+import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { TaskType } from "@google/generative-ai";
 
 const InputStateAnnotation = Annotation.Root({
   question: Annotation<string>,
@@ -20,47 +21,75 @@ const StateAnnotation = Annotation.Root({
 });
 
 export class RAG {
+  private qDrantCollectionName: string;
+  private llmModelName: string;
+  private embeddingsModelName: string;
+  private apiKey: string;
   private processor: ObsidianVaultProcessor;
   private llm: ChatGoogleGenerativeAI;
+  private embeddings: GoogleGenerativeAIEmbeddings;
   private vectorStore: QdrantVectorStore;
-  private graph: any;
   private promptTemplate: ChatPromptTemplate;
-  
+  private graph: any;
 
   constructor(
     processor: ObsidianVaultProcessor,
-    private apiKey: string,
-    private modelName: string = "gemini-1.5-flash"
+    apiKey: string,
+    qDrantCollectionName: "obsidian-rag",
+    llmModelName: "gemini-1.5-flash",
+    embeddingsModelName: "text-embedding-004"
   ) {
     if (!apiKey) {
       throw new Error("Gemini API key must be provided");
     }
-
+    // Assign privates
     this.processor = processor;
-    this.llm = new ChatGoogleGenerativeAI({
-      model: this.modelName,
-      temperature: 0,
-      maxRetries: 2,
-      apiKey: this.apiKey
-    });
+    this.apiKey = apiKey;
+    this.qDrantCollectionName = qDrantCollectionName;
+    this.llmModelName = llmModelName;
+    this.embeddingsModelName = embeddingsModelName;
   }
 
-  async setup() {
+  async init() {
     try {
-      // Get the promptTemplate from LangChain Hub
+      // Create LLM 
+      this.llm = new ChatGoogleGenerativeAI({
+        model: this.llmModelName,
+        temperature: 0,
+        maxRetries: 2,
+        apiKey: this.apiKey
+      });
+      // Create embeddings model
+      this.embeddings = new GoogleGenerativeAIEmbeddings({
+        model: this.embeddingsModelName,
+        taskType: TaskType.RETRIEVAL_DOCUMENT
+      });
+
+      // Set up vector store
+      this.vectorStore = await this.getVectorStore();
+      // Get prompt template from langchain
       this.promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
-      
-      // Initialize the vector store with documents from the processor
-      this.vectorStore = await this.processor.getVectorStore();
-      
-      // Create the LangGraph
+
+      // Build the LangGraph
       await this.buildGraph();
-      
+
       return this;
     } catch (error) {
-      console.error("Failed to set up RAG system:", error);
       throw new Error(`RAG system setup failed: ${error.message}`);
     }
+  }
+
+
+  /**
+   * Get the vector store using the Qdrant credentials provided in this class
+   * @returns Promise<QdrantVectorStore> the QDrant vectorstore object
+   */
+  private async getVectorStore(): Promise<QdrantVectorStore> {
+    return QdrantVectorStore.fromExistingCollection( this.embeddings, {
+        url: process.env.QDRANT_URL,
+        collectionName: this.qDrantCollectionName,
+      }
+    )
   }
 
   private async buildGraph() {
