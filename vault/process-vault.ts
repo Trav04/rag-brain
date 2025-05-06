@@ -2,96 +2,62 @@ import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
 import { GeminiLoader } from "./loader";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { TaskType } from "@google/generative-ai";
 import { QdrantVectorStore } from "@langchain/qdrant";
-import { QdrantClient } from "@qdrant/js-client-rest";
 
 export class ObsidianVaultProcessor {
+    private vaultPath: string;
     private loader: GeminiLoader;
     private vectorStore: QdrantVectorStore;
-    private splitter: RecursiveCharacterTextSplitter;
     private embeddings: GoogleGenerativeAIEmbeddings;
-    private qdrantClient: QdrantClient;
+    private chunkSize: number;
+    private chunkOverlap: number;
+
 
     constructor(
-      private vaultPath: string,
-      private geminiApiKey: string,
-      private qdrantConfig: {
-          url: string;
-          apiKey?: string;
-          collectionName: string;
-      },
-      private chunkSize: number = 1000,
-      private chunkOverlap: number = 200
+      vaultPath: string,
+      geminiApiKey: string,
+      vectorStore: QdrantVectorStore,
+      embeddings: GoogleGenerativeAIEmbeddings,
+      chunkSize: 1000,
+      chunkOverlap: 200
     ) {
-      this.loader = new GeminiLoader(this.vaultPath, this.geminiApiKey);
-      this.splitter = new RecursiveCharacterTextSplitter({
-          chunkSize: this.chunkSize,
-          chunkOverlap: this.chunkOverlap
-      });
-      this.qdrantClient = new QdrantClient({
-          url: qdrantConfig.url,
-          apiKey: qdrantConfig.apiKey
-      });
-      this.embeddings = new GoogleGenerativeAIEmbeddings({
-        model: "text-embedding-004", // 768 dimensions
-        taskType: TaskType.RETRIEVAL_DOCUMENT,
-      });
+      this.embeddings = embeddings;
+      this.chunkOverlap = chunkOverlap;
+      this.chunkSize = chunkSize;
+      this.vectorStore = vectorStore;
+      this.vaultPath = vaultPath;
+      this.loader = new GeminiLoader(vaultPath, geminiApiKey);
     }
 
+    /**
+     * Indexes every file in the vault from the class vault path. 
+     */
     public async indexVault(): Promise<void> { 
-      // Process documents and store all intial docs into qdrant
-      // Creates a qdrant collection and stores all vectors
+      // Define a splitting object to process documents
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: this.chunkSize,
+        chunkOverlap: this.chunkOverlap
+      });
+        // Use Gemini custom loader to process all document types
         const documents = await this.loadDocuments();
-        const splitDocs = await this.splitter.splitDocuments(documents);
-        
-        // Initialize Qdrant collection if it doesn't exist
-        try {
-          await this.qdrantClient.getCollection(this.qdrantConfig.collectionName);
-        } catch (e) {
-          await this.qdrantClient.createCollection(this.qdrantConfig.collectionName, {
-              vectors: {
-                  size: 768, // Gemini embedding size
-                  distance: "Cosine"
-              }
-          });
-        }
-        // Create vector store from initial documents
-        // TODO Make it so that only new documents are added to the vector store.
-        // TODO Make this operate as an initalise button in the plugin only
-        this.vectorStore = await QdrantVectorStore.fromDocuments(
-          splitDocs,
-          this.embeddings,
-          {
-              client: this.qdrantClient,
-              collectionName: this.qdrantConfig.collectionName
-          }
-      );
+        // Split the document into the chunks specified in the class
+        const splitDocs = await splitter.splitDocuments(documents);
+        // Add the documents using the embeddings instance of the vector store
+        await this.vectorStore.addDocuments(splitDocs);
     }
 
+    /**
+     * Using the Gemini Custom Loader, all file types are parsed into a langchain
+     * document type. Gemini Custom Loader can handle, .md, images and .pdf.
+     * An array of langchain document types is returned.
+     * 
+     * @returns Promise<Document[]>
+     */
     private async loadDocuments(): Promise<Document[]> {
         const documents: Document[] = [];
         for await (const doc of this.loader.loadDocuments()) {
             documents.push(doc);
         }
         return documents;
-    }
-    // TODO Add ability to add documents rather than parsing the whole library
-    // public async search(query: string, k:5): Promise<Document[]> {
-    //   if (!this.vectorStore) {
-    //       throw new Error("Vector store not initialized. Call initializeVectorStore() first.");
-    //   }
-    //   return this.vectorStore.similaritySearch(query, k);
-    // }
-
-    public async clearCollection(): Promise<void> {
-        await this.qdrantClient.deleteCollection(this.qdrantConfig.collectionName);
-    }
-
-    public async getVectorStore(): Promise<QdrantVectorStore> {
-      if (this.vectorStore) {
-        return this.vectorStore;
-      }
-      throw new Error("No vector store initialised")
     }
 }

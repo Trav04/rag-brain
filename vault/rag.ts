@@ -33,9 +33,8 @@ export class RAG {
   private graph: any;
 
   constructor(
-    processor: ObsidianVaultProcessor,
     apiKey: string,
-    qDrantCollectionName: "obsidian-rag",
+    qDrantCollectionName: string,
     llmModelName: "gemini-1.5-flash",
     embeddingsModelName: "text-embedding-004"
   ) {
@@ -43,7 +42,6 @@ export class RAG {
       throw new Error("Gemini API key must be provided");
     }
     // Assign privates
-    this.processor = processor;
     this.apiKey = apiKey;
     this.qDrantCollectionName = qDrantCollectionName;
     this.llmModelName = llmModelName;
@@ -81,17 +79,25 @@ export class RAG {
 
 
   /**
-   * Get the vector store using the Qdrant credentials provided in this class
+   * Get the vector store using the Qdrant credentials provided in this class.
+   * A collection in the qdrant instance is created if it doesn't already exist.
    * @returns Promise<QdrantVectorStore> the QDrant vectorstore object
    */
   private async getVectorStore(): Promise<QdrantVectorStore> {
-    return QdrantVectorStore.fromExistingCollection( this.embeddings, {
+    const vectorStore = QdrantVectorStore.fromExistingCollection( this.embeddings, {
         url: process.env.QDRANT_URL,
         collectionName: this.qDrantCollectionName,
       }
     )
+    // ;(await vectorStore).ensureCollection();
+    return vectorStore;
   }
 
+  /**
+   * Builds a langgraph with two nodes: Retreive and Generate.
+   * Adds edges between nodes. This approach allows for more complicated anad
+   * involved RAG and LLM chains to be implemented.
+   */
   private async buildGraph() {
     // Define the retrieval node
     const retrieve = async (state: typeof InputStateAnnotation.State) => {
@@ -125,9 +131,30 @@ export class RAG {
       .compile();
   }
   
+  public async indexVault(vaultPath: string, geminiApiKey: string) {
+    this.processor = new ObsidianVaultProcessor(
+      vaultPath, 
+      geminiApiKey, 
+      this.vectorStore, 
+      this.embeddings, 
+      1000, 
+      200
+    );
+
+    this.processor.indexVault();
+  }
+
+  /**
+   * Performs a semantic similarity search on the vector database with the input
+   * question and returns the answer.
+   * 
+   * @param question the question to be similarity searched against the vector 
+   *                 DB
+   * @returns The answer after RAG has completed.
+   */
   public async query(question: string): Promise<{ answer: string, sources: string[] }> {
     if (!this.graph) {
-      throw new Error("Graph is not initialized. Please call setup() before querying.");
+      throw new Error("Graph is not initialized. Please call init() before querying.");
     }
     try {
       // Execute the graph with the initial state
@@ -141,7 +168,6 @@ export class RAG {
         sources
       };
     } catch (error) {
-      console.error("RAG query failed:", error);
       throw new Error(`Failed to process query: ${error.message}`);
     }
   }
