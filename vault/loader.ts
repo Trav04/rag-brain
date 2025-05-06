@@ -71,20 +71,23 @@ export class GeminiLoader {
     /**
      * Walk the vaultPath and yield each file as a LangChain Document
      */
-    public async *loadDocuments(): AsyncGenerator<Document> {
-      const entries = fs.readdirSync(this.vaultPath, { withFileTypes: true });
-  
+    public async *loadDocuments(dir = this.vaultPath): AsyncGenerator<Document> {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+    
       for (const entry of entries) {
-        if (!entry.isFile()) continue;
-  
-        const fullPath = path.join(this.vaultPath, entry.name);
-        const content = await this.processFile(fullPath);
-        if (!content) continue;
-  
-        yield new Document({
-          pageContent: content,
-          metadata: { source: fullPath },
-        });
+        const fullPath = path.join(dir, entry.name);
+    
+        if (entry.isDirectory()) {
+          yield* this.loadDocuments(fullPath); // Recurse into subdirectory
+        } else if (entry.isFile()) {
+          const content = await this.processFile(fullPath);
+          if (!content) continue;
+    
+          yield new Document({
+            pageContent: content,
+            metadata: { source: fullPath },
+          });
+        }
       }
     }
-  }
+}
