@@ -1,6 +1,4 @@
 import { config } from "dotenv";
-import { GeminiLoader } from "./loader.js"; // adjust path if needed
-import { ObsidianVaultProcessor } from "./process-vault"
 import { RAG } from "./rag"
 
 config();
@@ -23,18 +21,17 @@ async function main() {
     process.exit(1);
   }
 
-  const processor = new ObsidianVaultProcessor("C:\\Users\\tngra\\Downloads\\test", apiKey, {url:  qdrantUrl, apiKey: qdrantApiKey, collectionName: "obsidian-rag"})
   
   // Index vault
-  await processor.indexVault()
+  // await processor.indexVault()
 
   // Query Vault
-  const rag = new RAG(processor, apiKey)
+  const rag = await new RAG(apiKey, "new", "gemini-1.5-flash", "text-embedding-004").init();
 
-  await rag.setup() // Create graph
+  await rag.indexVault("C:\\Users\\tngra\\Downloads\\test", apiKey);
 
-  const answer = await rag.query("What is Very Good and what are the values?")
-  console.log(answer.answer)
+  const answer = await rag.query("What is an FSM?");
+  console.log(answer.answer);
   console.log(answer.sources)
 }
 
