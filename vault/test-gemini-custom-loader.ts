@@ -26,7 +26,7 @@ async function main() {
   const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 100 });
 
   for await (const doc of loader.loadDocuments()) {
-    console.log(`\n📄 Loaded: ${doc.metadata.source}`);
+    console.log(`\nLoaded: ${doc.metadata.source}`);
     const chunks = await splitter.splitDocuments([doc]);
 
     for (const [i, chunk] of chunks.entries()) {
