@@ -1,5 +1,6 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
+import type { Schemas as QdrantSchemas } from "@qdrant/js-client-rest";
 import { GeminiLoader } from "./loader";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
@@ -43,6 +44,14 @@ export class VectorManager {
         url: process.env.QDRANT_URL,
         collectionName: this.qdrantCollectionName,
       });
+      this.vectorStore.client.createPayloadIndex(this.qdrantCollectionName, {
+          field_name: "id",
+          field_schema: "keyword"
+        })
+      this.vectorStore.client.createPayloadIndex(this.qdrantCollectionName, {
+          field_name: "source",
+          field_schema: "keyword"
+      })
       return this;
     }
 
@@ -61,13 +70,14 @@ export class VectorManager {
         const splitDocs = await splitter.splitDocuments(documents);
         // Add the documents using the embeddings instance of the vector store
         await this.vectorStore.addDocuments(splitDocs);
+
     }
 
     /**
      * Using the Gemini Custom Loader, all file types are parsed into a langchain
      * document type. Gemini Custom Loader can handle, .md, images and .pdf.
      * An array of langchain document types is returned.
-     * 
+
      * @returns Promise<Document[]>
      */
     private async loadDocuments(): Promise<Document[]> {
@@ -78,28 +88,36 @@ export class VectorManager {
         return documents;
     }
 
+    /**
+     * Getter for the vector store instance
+     * @returns QdrantVectorStore - the vector store instance
+     */
     public getVectorStore(): QdrantVectorStore {
       return this.vectorStore;
     }
 
-    public async deleteDocument(filePaths: string[]): Promise<void> {
+    public async deleteDocuments(filePaths: string[]): Promise<void> {
       // Create a filter for metadata.source
       const filter = {
         should: filePaths.map(path => ({
-          key: "metadata.source",
+          key: "source",
           match: { value: path }
         }))
       };
+    
+      // Use a large finite number instead of Infinity
+      const results = await this.vectorStore.similaritySearch("", 10000, filter);
+      console.log(results);
+      // try {
+      //   await this.vectorStore.client.delete(this.qdrantCollectionName, {
+      //     filter,
+      //     wait: true
+      //   });
+      // } catch (error) {
+      //   console.error("Failed to delete documents by ID:", error);
+      //   throw new Error(`Document deletion by ID failed: ${error.message}`);
+      // }
 
-      // First get document IDs using the filter
-      const results = await this.vectorStore.similaritySearch("", Infinity, filter);
-      
-      // Extract IDs from results
-      const idsToDelete = results.map(doc => doc.metadata.id);
-
-      // Delete using LangChain's API
-      if (idsToDelete.length > 0) {
-        await this.vectorStore.delete({ ids: idsToDelete });
-      }
     }
+    
 }
