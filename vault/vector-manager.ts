@@ -4,7 +4,7 @@ import { GeminiLoader } from "./loader";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
 
-export class ObsidianVaultProcessor {
+export class VectorManager {
     private vaultPath: string;
     private loader: GeminiLoader;
     private vectorStore: QdrantVectorStore;
@@ -12,12 +12,12 @@ export class ObsidianVaultProcessor {
     private chunkSize: number;
     private chunkOverlap: number;
 
-
     constructor(
       vaultPath: string,
       geminiApiKey: string,
       vectorStore: QdrantVectorStore,
       embeddings: GoogleGenerativeAIEmbeddings,
+      ocrModel: string,
       chunkSize: 1000,
       chunkOverlap: 200
     ) {
@@ -26,7 +26,7 @@ export class ObsidianVaultProcessor {
       this.chunkSize = chunkSize;
       this.vectorStore = vectorStore;
       this.vaultPath = vaultPath;
-      this.loader = new GeminiLoader(vaultPath, geminiApiKey);
+      this.loader = new GeminiLoader(vaultPath, geminiApiKey, ocrModel);
     }
 
     /**
@@ -59,5 +59,14 @@ export class ObsidianVaultProcessor {
             documents.push(doc);
         }
         return documents;
+    }
+
+    public async deleteDocument(): Promise<void> {
+          /**
+           * Method that deletes points from the Qdrant database.
+           * @param params Parameters for the delete operation.
+           * @returns Promise that resolves when the delete operation is complete.
+           */
+          await this.vectorStore.delete("{this.c"
     }
 }

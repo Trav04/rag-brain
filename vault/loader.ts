@@ -14,8 +14,8 @@ export class GeminiLoader {
 
     constructor(
         private vaultPath: string,
-        private apiKey: string,
-        private model: string = "gemini-pro-vision"
+        private model: string,
+        apiKey: string
     ) {
         this.ai = new GoogleGenAI({ apiKey: apiKey });
     }
@@ -44,7 +44,7 @@ export class GeminiLoader {
           const mimeType = image.mimeType ?? this.getMimeType(ext);
 
           const response = await this.ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: this.model,
             contents: [
               createUserContent([
                 prompt,

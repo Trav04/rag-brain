@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { ObsidianVaultProcessor } from "../vault/process-vault";
+import { VectorManager } from "./vector-manager";
 import { Document } from "langchain/document";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { pull } from "langchain/hub";
@@ -25,7 +25,8 @@ export class RAG {
   private llmModelName: string;
   private embeddingsModelName: string;
   private apiKey: string;
-  private processor: ObsidianVaultProcessor;
+  private ocrModel: string;
+  private processor: VectorManager;
   private llm: ChatGoogleGenerativeAI;
   private embeddings: GoogleGenerativeAIEmbeddings;
   private vectorStore: QdrantVectorStore;
@@ -36,6 +37,7 @@ export class RAG {
     apiKey: string,
     qDrantCollectionName: string,
     llmModelName: "gemini-1.5-flash",
+    ocrModel: string,
     embeddingsModelName: "text-embedding-004"
   ) {
     if (!apiKey) {
@@ -46,6 +48,7 @@ export class RAG {
     this.qDrantCollectionName = qDrantCollectionName;
     this.llmModelName = llmModelName;
     this.embeddingsModelName = embeddingsModelName;
+    this.ocrModel = ocrModel;
   }
 
   async init() {
@@ -132,11 +135,12 @@ export class RAG {
   }
   
   public async indexVault(vaultPath: string, geminiApiKey: string) {
-    this.processor = new ObsidianVaultProcessor(
+    this.processor = new VectorManager(
       vaultPath, 
       geminiApiKey, 
       this.vectorStore, 
       this.embeddings, 
+      this.ocrModel,
       1000, 
       200
     );
