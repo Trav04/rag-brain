@@ -45,12 +45,13 @@ export class VectorManager {
         url: process.env.QDRANT_URL,
         collectionName: this.qdrantCollectionName,
       });
+      // Create filtrable index for id and source
       this.vectorStore.client.createPayloadIndex(this.qdrantCollectionName, {
-          field_name: "id",
+          field_name: "metadata.id",
           field_schema: "keyword"
         })
       this.vectorStore.client.createPayloadIndex(this.qdrantCollectionName, {
-          field_name: "metadata.source",
+          field_name: "metadata.source",  // filepath source
           field_schema: "keyword"
       })
       return this;
@@ -97,6 +98,12 @@ export class VectorManager {
       return this.vectorStore;
     }
 
+    /**
+     * Deletes all segments corresponding to files that are listed in the
+     * parsed string array.
+     * @param filePaths array of flile paths of documents to be deleted from the 
+     *                  vector db
+     */
     public async deleteDocuments(filePaths: string[]): Promise<void> {
       // Create a filter for metadata.source
       const fileFilter = {
@@ -120,6 +127,13 @@ export class VectorManager {
         console.error("Failed to delete documents by ID:", error);
         throw new Error(`Document deletion by ID failed: ${error.message}`);
       }
+    }
+    
+    public async addDocuments(filePaths: string[]): Promise<void> {
+      const documents: Document[] = [];
+        for await (const doc of this.documentLoader.loadDocuments()) {
+            documents.push(doc);
+        }
 
     }
     
