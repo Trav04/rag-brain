@@ -5,6 +5,7 @@ import { GeminiLoader } from "./loader";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
 import { TaskType } from "@google/generative-ai";
+import * as path from 'path';
 
 
 export class VectorManager {
@@ -49,7 +50,7 @@ export class VectorManager {
           field_schema: "keyword"
         })
       this.vectorStore.client.createPayloadIndex(this.qdrantCollectionName, {
-          field_name: "source",
+          field_name: "metadata.source",
           field_schema: "keyword"
       })
       return this;
@@ -98,25 +99,27 @@ export class VectorManager {
 
     public async deleteDocuments(filePaths: string[]): Promise<void> {
       // Create a filter for metadata.source
-      const filter = {
-        should: filePaths.map(path => ({
-          key: "source",
-          match: { value: path }
+      const fileFilter = {
+      should: filePaths.map(filepath => ({
+          key: "metadata.source",
+          match: { 
+            value: filepath
+          }
         }))
       };
     
       // Use a large finite number instead of Infinity
-      const results = await this.vectorStore.similaritySearch("", 10000, filter);
-      console.log(results);
-      // try {
-      //   await this.vectorStore.client.delete(this.qdrantCollectionName, {
-      //     filter,
-      //     wait: true
-      //   });
-      // } catch (error) {
-      //   console.error("Failed to delete documents by ID:", error);
-      //   throw new Error(`Document deletion by ID failed: ${error.message}`);
-      // }
+      const results = await this.vectorStore.client.scroll(this.qdrantCollectionName, {filter: fileFilter});
+      console.log("Filter result:", results);
+      try {
+        await this.vectorStore.client.delete(this.qdrantCollectionName, {
+          filter: fileFilter,
+          wait: true
+        });
+      } catch (error) {
+        console.error("Failed to delete documents by ID:", error);
+        throw new Error(`Document deletion by ID failed: ${error.message}`);
+      }
 
     }
     
