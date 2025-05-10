@@ -1,14 +1,11 @@
 import 'dotenv/config';
 import { VectorManager } from "./vector-manager";
+import { VersionControl } from "./version-control"
 import { Document } from "langchain/document";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { pull } from "langchain/hub";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
-import { Annotation } from "@langchain/langgraph";
-import { StateGraph } from "@langchain/langgraph";
-import { QdrantVectorStore } from "@langchain/qdrant";
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
-import { TaskType } from "@google/generative-ai";
+import { Annotation, StateGraph } from "@langchain/langgraph";
 
 const InputStateAnnotation = Annotation.Root({
   question: Annotation<string>,
@@ -21,34 +18,28 @@ const StateAnnotation = Annotation.Root({
 });
 
 export class RAG {
-  private qDrantCollectionName: string;
   private llmModelName: string;
-  private embeddingsModelName: string;
-  private apiKey: string;
-  private ocrModel: string;
-  private processor: VectorManager;
+  private geminiApiKey: string;
+  private vectorManager: VectorManager;
+  private versionControl: VersionControl;
   private llm: ChatGoogleGenerativeAI;
-  private embeddings: GoogleGenerativeAIEmbeddings;
-  private vectorStore: QdrantVectorStore;
   private promptTemplate: ChatPromptTemplate;
   private graph: any;
 
   constructor(
-    apiKey: string,
-    qDrantCollectionName: string,
+    geminiApiKey: string,
     llmModelName: "gemini-1.5-flash",
-    ocrModel: string,
-    embeddingsModelName: "text-embedding-004"
+    vectorManager: VectorManager,
+    versionControl: VersionControl,
   ) {
-    if (!apiKey) {
+    if (!geminiApiKey) {
       throw new Error("Gemini API key must be provided");
     }
     // Assign privates
-    this.apiKey = apiKey;
-    this.qDrantCollectionName = qDrantCollectionName;
+    this.geminiApiKey = geminiApiKey;
     this.llmModelName = llmModelName;
-    this.embeddingsModelName = embeddingsModelName;
-    this.ocrModel = ocrModel;
+    this.vectorManager = vectorManager;
+    this.versionControl = versionControl;
   }
 
   async init() {
@@ -58,16 +49,9 @@ export class RAG {
         model: this.llmModelName,
         temperature: 0,
         maxRetries: 2,
-        apiKey: this.apiKey
-      });
-      // Create embeddings model
-      this.embeddings = new GoogleGenerativeAIEmbeddings({
-        model: this.embeddingsModelName,
-        taskType: TaskType.RETRIEVAL_DOCUMENT
+        apiKey: this.geminiApiKey
       });
 
-      // Set up vector store
-      this.vectorStore = await this.getVectorStore();
       // Get prompt template from langchain
       this.promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
 
@@ -80,22 +64,6 @@ export class RAG {
     }
   }
 
-
-  /**
-   * Get the vector store using the Qdrant credentials provided in this class.
-   * A collection in the qdrant instance is created if it doesn't already exist.
-   * @returns Promise<QdrantVectorStore> the QDrant vectorstore object
-   */
-  private async getVectorStore(): Promise<QdrantVectorStore> {
-    const vectorStore = QdrantVectorStore.fromExistingCollection( this.embeddings, {
-        url: process.env.QDRANT_URL,
-        collectionName: this.qDrantCollectionName,
-      }
-    )
-    // ;(await vectorStore).ensureCollection();
-    return vectorStore;
-  }
-
   /**
    * Builds a langgraph with two nodes: Retreive and Generate.
    * Adds edges between nodes. This approach allows for more complicated anad
@@ -104,7 +72,8 @@ export class RAG {
   private async buildGraph() {
     // Define the retrieval node
     const retrieve = async (state: typeof InputStateAnnotation.State) => {
-      const retrievedDocs = await this.vectorStore.similaritySearch(state.question);
+      const vectorStore = await this.vectorManager.getVectorStore();
+      const retrievedDocs = await vectorStore.similaritySearch(state.question);
       return { context: retrievedDocs };
     };
 
@@ -132,27 +101,6 @@ export class RAG {
       .addEdge("retrieve", "generate")
       .addEdge("generate", "__end__")
       .compile();
-  }
-  
-  /**
-   * Creates an instance of Vector manager and indexes the vault.
-   * // TODO This is not a class function, this should be called from the plugin itself. The instance of Vector manager
-   * // TODO should be stored as a plugin private variable
-   * @param vaultPath the path to the obsidian vault
-   * @param geminiApiKey API key for the embeddings model
-   */
-  public async indexVault(vaultPath: string, geminiApiKey: string) {
-    this.processor = new VectorManager(
-      vaultPath, 
-      geminiApiKey, 
-      this.vectorStore, 
-      this.embeddings, 
-      this.ocrModel,
-      1000, 
-      200
-    );
-
-    this.processor.indexVault();
   }
 
   /**

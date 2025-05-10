@@ -30,7 +30,7 @@ export class VersionControl {
    * Scan through the tracked files and determine if the qdrant store needs
    * to be updated. If it does, return the updated files and deleted files.
    */
-  public async updateVersionControl(): Promise<void> {
+  public async updateVersionControl(): Promise<{ changedFiles: string[], deletedFiles: string[] }> {
     await this.loadTrackingData();
     const { changedFiles, deletedFiles } = await this.detectChanges();
     console.log("Changed Files:\r\n",changedFiles, "Deleted Files:\r\n", deletedFiles);
@@ -39,6 +39,8 @@ export class VersionControl {
     await this.processChangedFiles(changedFiles);
     
     await this.saveTrackingData();
+
+    return { changedFiles, deletedFiles };
   }
 
   /**

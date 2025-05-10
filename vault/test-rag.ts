@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import { RAG } from "./rag"
 import { VersionControl } from "./version-control"
+import { VectorManager } from "./vector-manager"
 
 config();
 
@@ -22,22 +23,27 @@ async function main() {
     process.exit(1);
   }
 
-  
+  // Vault path
   const vaultPath = "C:\\Users\\tngra\\Downloads\\test"
+
+  // Vector manager
+  const vectorManager = await new VectorManager(vaultPath, apiKey, "text-embedding-004", "gemini-2.0-flash", "new-collection", 1000, 200).init();
   
-
-
-  // Query Vault
-  const rag = await new RAG(apiKey, "new-collection", "gemini-1.5-flash", "gemini-2.0-flash", "text-embedding-004").init();
-
-  // Index Vault
-  // await rag.indexVault("C:\\Users\\tngra\\Downloads\\test", apiKey);
-
-  // Init version control
+  // Verison control
   const versionControl = await new VersionControl(vaultPath)
-  // Update/Generate version control file
-  versionControl.updateVersionControl()
   
+  // RAG Master - contains VectorManager and VersionControl
+  const rag = await new RAG(apiKey, "gemini-1.5-flash", vectorManager, versionControl).init();
+
+  // Initial index Vault
+  // await vectorManager.indexVault();
+
+
+  // // Update/Generate version control file
+  // const {changedFiles, deletedFiles } = await versionControl.updateVersionControl()
+
+  // rag.deleteDocument(deletedFiles);
+
   const answer = await rag.query("What is an FSM?");
   console.log(answer.answer);
   console.log(answer.sources)
