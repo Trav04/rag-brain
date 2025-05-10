@@ -3,6 +3,7 @@ import {
   createUserContent,
   createPartFromUri,
 } from "@google/genai";
+import { v4 as uuidv4 } from "uuid";
 import { Document } from "langchain/document";
 import * as fs from "fs";
 import * as path from "path";
@@ -76,16 +77,16 @@ export class GeminiLoader {
     
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-    
+
         if (entry.isDirectory()) {
           yield* this.loadDocuments(fullPath); // Recurse into subdirectory
         } else if (entry.isFile()) {
           const content = await this.processFile(fullPath);
           if (!content) continue;
-    
+
           yield new Document({
             pageContent: content,
-            metadata: { source: fullPath },
+            metadata: { source: fullPath, id: uuidv4() },
           });
         }
       }
