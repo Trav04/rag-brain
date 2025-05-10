@@ -1,5 +1,6 @@
 import { config } from "dotenv";
 import { RAG } from "./rag"
+import { VersionControl } from "./version-control"
 
 config();
 
@@ -22,14 +23,21 @@ async function main() {
   }
 
   
-  // Index vault
-  // await processor.indexVault()
+  const vaultPath = "C:\\Users\\tngra\\Downloads\\test"
+  
+
 
   // Query Vault
   const rag = await new RAG(apiKey, "new-collection", "gemini-1.5-flash", "gemini-2.0-flash", "text-embedding-004").init();
 
+  // Index Vault
   // await rag.indexVault("C:\\Users\\tngra\\Downloads\\test", apiKey);
 
+  // Init version control
+  const versionControl = await new VersionControl(vaultPath)
+  // Update/Generate version control file
+  versionControl.updateVersionControl()
+  
   const answer = await rag.query("What is an FSM?");
   console.log(answer.answer);
   console.log(answer.sources)

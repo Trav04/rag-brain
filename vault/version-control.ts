@@ -22,7 +22,7 @@ export class VersionControl {
     trackingFilePath?: string, // Optional
   ) {
     this.vaultPath = vaultPath;
-    this.fileMapMetaData = trackingFilePath || '.file-version-control.json';
+    this.fileMapMetaData = trackingFilePath || 'rag-brain-version-control.json';
 
   }
 
@@ -30,7 +30,7 @@ export class VersionControl {
    * Scan through the tracked files and determine if the qdrant store needs
    * to be updated. If it does, return the updated files and deleted files.
    */
-  public async updateIndex(): Promise<void> {
+  public async updateVersionControl(): Promise<void> {
     await this.loadTrackingData();
     const { changedFiles, deletedFiles } = await this.detectChanges();
     console.log("Changed Files:\r\n",changedFiles, "Deleted Files:\r\n", deletedFiles);
