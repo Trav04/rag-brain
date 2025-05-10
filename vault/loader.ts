@@ -45,7 +45,7 @@ export class GeminiLoader {
           const mimeType = image.mimeType ?? this.getMimeType(ext);
 
           const response = await this.ai.models.generateContent({
-            model: "gemini-2.0-flash",
+            model: this.model,
             contents: [
               createUserContent([
                 prompt,
