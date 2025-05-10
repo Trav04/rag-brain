@@ -33,7 +33,7 @@ export class VersionControl {
   public async updateVersionControl(): Promise<{ changedFiles: string[], deletedFiles: string[] }> {
     await this.loadTrackingData();
     const { changedFiles, deletedFiles } = await this.detectChanges();
-    console.log("Changed Files:\r\n",changedFiles, "Deleted Files:\r\n", deletedFiles);
+    console.log("Changed Files:\r\n", changedFiles, "\nDeleted Files:\r\n", deletedFiles);
     
     await this.handleDeletedFiles(deletedFiles);
     await this.processChangedFiles(changedFiles);
@@ -134,6 +134,33 @@ export class VersionControl {
       .filter(path => !currentFiles.has(path));
 
     return { changedFiles, deletedFiles };
+  }
+
+    /**
+   * Performs initial hashing of all files in the vault
+   */
+  private async initializeVaultHashing() {
+    const trackingData: TrackingData = { files: {} };
+
+    for await (const filePath of this.walkDirectory(this.vaultPath)) {
+      try {
+        const stats = await fs.promises.stat(filePath);
+        const hash = await this.getFileHash(filePath);
+
+        trackingData.files[filePath] = {
+          lastModified: stats.mtimeMs,
+          hash: hash
+        };
+        
+        // Optional: Log progress for large vaults
+        console.log(`Processed: ${filePath}`);
+      } catch (error) {
+        console.error(`Error processing file ${filePath}:`, error);
+      }
+    }
+
+    // Save the initial tracking data state
+    this.trackingData = trackingData;
   }
 
   /**
