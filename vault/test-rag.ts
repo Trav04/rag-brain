@@ -26,9 +26,9 @@ async function main() {
   // await processor.indexVault()
 
   // Query Vault
-  const rag = await new RAG(apiKey, "new", "gemini-1.5-flash", "text-embedding-004").init();
+  const rag = await new RAG(apiKey, "new-collection", "gemini-1.5-flash", "gemini-2.0-flash", "text-embedding-004").init();
 
-  await rag.indexVault("C:\\Users\\tngra\\Downloads\\test", apiKey);
+  // await rag.indexVault("C:\\Users\\tngra\\Downloads\\test", apiKey);
 
   const answer = await rag.query("What is an FSM?");
   console.log(answer.answer);

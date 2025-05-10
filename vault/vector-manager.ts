@@ -26,7 +26,7 @@ export class VectorManager {
       this.chunkSize = chunkSize;
       this.vectorStore = vectorStore;
       this.vaultPath = vaultPath;
-      this.loader = new GeminiLoader(vaultPath, geminiApiKey, ocrModel);
+      this.loader = new GeminiLoader(vaultPath, ocrModel, geminiApiKey);
     }
 
     /**
@@ -61,12 +61,12 @@ export class VectorManager {
         return documents;
     }
 
-    public async deleteDocument(): Promise<void> {
-          /**
-           * Method that deletes points from the Qdrant database.
-           * @param params Parameters for the delete operation.
-           * @returns Promise that resolves when the delete operation is complete.
-           */
-          await this.vectorStore.delete("{this.c"
-    }
+    // public async deleteDocument(): Promise<void> {
+    //       /**
+    //        * Method that deletes points from the Qdrant database.
+    //        * @param params Parameters for the delete operation.
+    //        * @returns Promise that resolves when the delete operation is complete.
+    //        */
+    //       await this.vectorStore.delete("{this.c"
+    // }
 }
