@@ -134,6 +134,13 @@ export class RAG {
       .compile();
   }
   
+  /**
+   * Creates an instance of Vector manager and indexes the vault.
+   * // TODO This is not a class function, this should be called from the plugin itself. The instance of Vector manager
+   * // TODO should be stored as a plugin private variable
+   * @param vaultPath the path to the obsidian vault
+   * @param geminiApiKey API key for the embeddings model
+   */
   public async indexVault(vaultPath: string, geminiApiKey: string) {
     this.processor = new VectorManager(
       vaultPath, 
