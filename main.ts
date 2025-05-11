@@ -15,26 +15,42 @@ export default class RAGBrain extends Plugin {
         this.vaultPath = (this.app.vault.adapter as any).basePath;
         await this.loadSettings();
         this.addSettingTab(new RAGBrainSettingsTab(this.app, this));
+
+        this.addCommand({
+          id: "index-vault",
+          name: "Vectorise Entire Vault",
+          callback: () => {
+            this.indexEntireVault();
+          },
+        });
+        console.log("Vault path:", this.vaultPath);
         console.log("Plugin loaded with settings:", this.settings);
     }
 
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
         if (this.settings.geminiApiKey && this.settings.qdrantApiKey && this.settings.qdrantUrl) {
-          await this.init;
+          await this.init();
         }
     }
+      
 
+    /**
+     * Instantiate classes required to run RAGBrain
+     */
     async init() {
-      this.vectorManager = new VectorManager( 
-        this.vaultPath, this.settings.geminiApiKey,
-        this.settings.geminiEmbeddingsModel,
-        this.settings.ocrEnabled,
-        this.settings.geminiOCRModel,
-        this.settings.qdrantCollectionName,
-        1000, 
-        200
-        );
+      this.vectorManager = await new VectorManager( 
+          this.vaultPath, 
+          this.settings.geminiApiKey,
+          this.settings.qdrantUrl,
+          this.settings.qdrantApiKey,
+          this.settings.geminiEmbeddingsModel,
+          this.settings.ocrEnabled,
+          this.settings.geminiOCRModel,
+          this.settings.qdrantCollectionName,
+          1000, 
+          200
+        ).init();
 
       this.versionControl = new VersionControl(this.vaultPath) // TODO add setting to set the version control path
 
@@ -43,10 +59,18 @@ export default class RAGBrain extends Plugin {
         this.vectorManager,
         this.versionControl
       ).init();
+      console.log("Initialised class variables");
     }
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    /**
+     * Vectorises all files in the vault and pushes them to the qdrant instance
+     */
+    async indexEntireVault() {
+      await this.vectorManager.indexVault();
     }
 
 

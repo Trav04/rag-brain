@@ -18,7 +18,7 @@ export const DEFAULT_SETTINGS: RAGBrainSettings = {
     qdrantApiKey: "",
     ocrEnabled: false,
     geminiEmbeddingsModel: "text-embedding-004",
-    geminiOCRModel: "gemini-2.0-flash",
+    geminiOCRModel: "gemini-1.5-flash",
     geminiLLMModel: "gemini-1.5-flash",
     qdrantCollectionName: "my-obsidian-vault",
 };

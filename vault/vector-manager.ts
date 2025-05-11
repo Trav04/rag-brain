@@ -20,6 +20,8 @@ export class VectorManager {
     constructor(
       vaultPath: string,
       geminiApiKey: string,
+      private qdrantUrl: string,
+      private qdrantApiKey: string,
       embeddingsModelName: string,
       ocrOn: boolean,
       ocrModelName: string,  // default model used
@@ -33,6 +35,7 @@ export class VectorManager {
       this.ocrOn = ocrOn;
       // Instantiate embeddings model
       this.embeddings = new GoogleGenerativeAIEmbeddings({
+        apiKey: geminiApiKey,
         model: embeddingsModelName,
         taskType: TaskType.RETRIEVAL_DOCUMENT
       });
@@ -45,7 +48,7 @@ export class VectorManager {
       // Initialise the vectorstore in qdrant server
       this.vectorStore = await QdrantVectorStore.fromExistingCollection( 
         this.embeddings, {
-        url: process.env.QDRANT_URL,
+        url: this.qdrantUrl,
         collectionName: this.qdrantCollectionName,
       });
       // Create filtrable index for id and source
@@ -69,13 +72,21 @@ export class VectorManager {
      * Indexes every file in the vault from the class vault path. 
      */
     public async indexVault(): Promise<void> { 
-
         // Use Gemini custom loader to process all document types
         const documents = await this.loadDocuments();
         // Split the document into the chunks specified in the class
         const splitDocs = await this.splitter.splitDocuments(documents);
         // Add the documents using the embeddings instance of the vector store
-        await this.vectorStore.addDocuments(splitDocs);
+        // Push docs individually to avoid crashing out on single failure 
+        const successfulDocs: typeof splitDocs = [];
+        for (const doc of splitDocs) {
+            try {
+                await this.vectorStore.addDocuments([doc]); // use one at a time
+                successfulDocs.push(doc);
+            } catch (err) { // TODO Determine what type of docs gemini api rejects and handle
+                console.error("Failed to embed or store document chunk:", doc.metadata?.source, err);
+            }
+        }
 
     }
 
