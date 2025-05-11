@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Plugin, Notice } from "obsidian";
 import { VersionControl } from "./vault/version-control";
 import { RAG } from "./vault/rag";
 import { VectorManager } from "./vault/vector-manager";
@@ -13,11 +13,9 @@ export default class RAGBrain extends Plugin {
     private ragMaster: RAG;
 
     async onload() {
-        this.vaultPath = (this.app.vault.adapter as any).basePath;
+        this.vaultPath = "C:\\Test";//(this.app.vault.adapter as any).basePath;
         await this.loadSettings();
         this.addSettingTab(new RAGBrainSettingsTab(this.app, this));
-
-        
 
         this.addCommand({
           id: "index-vault",
@@ -27,6 +25,13 @@ export default class RAGBrain extends Plugin {
           },
         });
 
+        this.addCommand({
+          id: "update-vault-index",
+          name: "Update vector version control",
+          callback: () => {
+            this.updateVaultIndex();
+          },
+        });
         this.registerView(
           RAG_VIEW_TYPE,
           (leaf) => new RAGBrainView(leaf, this)
@@ -64,7 +69,7 @@ export default class RAGBrain extends Plugin {
           200
         ).init();
 
-      this.versionControl = new VersionControl(this.vaultPath, this.vaultPath + "/rag-brain-version-control.json") // TODO add setting to set the version control path
+      this.versionControl = new VersionControl(this.vaultPath, this.vaultPath + "/.obsidian/rag-brain-version-control.json") // TODO add setting to set the version control path
 
       this.ragMaster = await new RAG(this.settings.geminiApiKey, 
         this.settings.geminiLLMModel,
@@ -112,15 +117,31 @@ export default class RAGBrain extends Plugin {
 
     /**
      * Vectorises all files in the vault and pushes them to the qdrant instance
+     * Creates a notice when the process starts and a notice when the process 
+     * finishes.
      */
-    async indexEntireVault() {
-      await this.vectorManager.indexVault();
-    }
+      async indexEntireVault() {
+        const inProgressNotice = new Notice("⌛ Indexing entire vault... (this will continue in the background)");
+        try {
+          await this.vectorManager.indexVault();
+          new Notice("✅ Vault indexing complete.");
+        } catch (error) {
+          new Notice("Vault indexing failed. Check console for details.");
+          console.error("Vault indexing error:", error);
+        } finally {
+          // Optional: dismiss the in-progress notice early if desired
+          inProgressNotice.hide(); 
+        }
+      }
 
     async initialiseVersionControl() {
       await this.versionControl.initialiseVaultVersionControl();
     }
 
+    /**
+     * Updates the vault version control and revectorises or deletes vectors
+     * where appropriate. Updates the version control JSON file.
+     */
     async updateVaultIndex() {
       await this.ragMaster.updateVaultVersionControl();
     }

@@ -50,6 +50,7 @@ export class VersionControl {
    * created.
    */
   public async initialiseVaultVersionControl() {
+    await this.ensureDirectoryFileExists(this.versionControlFilePath);
     try {
       await fs.promises.readFile(this.versionControlFilePath, 'utf-8');
     } catch (error) {
@@ -79,15 +80,22 @@ export class VersionControl {
   }
 
   /**
-   * Looks for a tracking json file or creates a new one if it doesn't exist
+   * Looks for a tracking json file and loads if available, creates
+   * an empty file if it isn't found
    */
   private async loadTrackingData(): Promise<void> {
+    await this.ensureDirectoryFileExists(this.versionControlFilePath);
     try {
       const data = await fs.promises.readFile(this.versionControlFilePath, 'utf-8');
       this.trackingData = JSON.parse(data) as TrackingData;
     } catch (error) {
       console.log('No existing tracking data, starting fresh');
       this.trackingData = { files: {} };
+      // Create an empty file
+      await fs.promises.writeFile(
+        this.versionControlFilePath,
+        JSON.stringify(this.trackingData, null, 2)
+    );
     }
   }
 
@@ -202,6 +210,16 @@ export class VersionControl {
         hash
       };
     }
+  }
+
+  /**
+   * Checks if a file exists in a given directory, creates the directory
+   * and file if it doesn't exist.
+   * @param filePath the path to the file in directory to be checked
+   */
+  private async ensureDirectoryFileExists(filePath: string): Promise<void> {
+    const dir = path.dirname(filePath);
+    await fs.promises.mkdir(dir, { recursive: true });
   }
   
 }

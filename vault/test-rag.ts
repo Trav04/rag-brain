@@ -7,7 +7,7 @@ config();
 
 async function main() {
   const apiKey = process.env.GEMINI_API_KEY;
-  const qdrantUrl = process.env.QDRANT_URL;
+  const qdrantUrl = "http://localhost:6333";
   const qdrantApiKey = process.env.QDRANT_API_KEY;
 
   if (!apiKey) {
@@ -24,11 +24,21 @@ async function main() {
   }
 
   // Vault path
-  const vaultPath = "C:\\Users\\tngra\\Downloads\\test"
+  const vaultPath = "C:\\Main"
 
   // Vector manager
-  const vectorManager = await new VectorManager(vaultPath, apiKey, "text-embedding-004", "gemini-2.0-flash", "new-collection", 1000, 200).init();
-  
+  const vectorManager = await await new VectorManager( 
+          vaultPath, 
+          apiKey,
+          qdrantUrl,
+          qdrantApiKey,
+          "text-embedding-004",
+          false,
+          "gemini-2.0-flash",
+          "my-obsidian-vault",
+          1000, 
+          200
+        ).init();
   // Verison control
   const versionControl = await new VersionControl(vaultPath)
   
@@ -36,7 +46,7 @@ async function main() {
   const rag = await new RAG(apiKey, "gemini-1.5-flash", vectorManager, versionControl).init();
 
   // Initial index Vault
-  // await vectorManager.indexVault();
+  await vectorManager.indexVault();
 
 
   // // Update/Generate version control file
@@ -44,9 +54,9 @@ async function main() {
 
   // rag.deleteDocument(deletedFiles);
 
-  const answer = await rag.query("What is an FSM?");
-  console.log(answer.answer);
-  console.log(answer.sources)
+  // const answer = await rag.query("What is an FSM?");
+  // console.log(answer.answer);
+  // console.log(answer.sources)
 }
 
 main().catch(console.error);
