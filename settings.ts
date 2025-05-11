@@ -66,7 +66,7 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
         // QDrant API Key
         new Setting(containerEl)
             .setName("QDrant API Key")
-            .setDesc("API key for QDrant access.")
+            .setDesc("API key for QDrant access (Optional as local instance of Qdrant doesn't require API key by default).")
             .addText((text) =>
                 text
                     .setPlaceholder("Enter your API key")

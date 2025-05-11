@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { RAGBrain } from "./main";
+import RAGBrain from "./main";
 
 export const RAG_VIEW_TYPE = "rag-brain-view";
 
@@ -27,10 +27,29 @@ export class RAGBrainView extends ItemView {
         return "message-square";
     }
 
+    private createButton(container: HTMLElement, text: string, onClick: () => void) {
+        const button = container.createEl("button", {
+            cls: "rag-operation-button",
+            text: text
+        });
+        
+        button.addEventListener("click", onClick);
+        return button;
+    }
+
     async onOpen() {
         const container = this.containerEl.children[1];
         container.empty();
         container.addClass("rag-chat-container");
+
+        // Add vault operations buttons
+        const buttonContainer = container.createDiv("rag-button-container");
+        this.createButton(buttonContainer, "🔢 Vectorise Entire Vault", () => 
+            this.plugin.indexEntireVault()
+        );
+        this.createButton(buttonContainer, "🔄 Update Vectors", () => 
+            this.plugin.updateVaultIndex()
+        );
 
         // Message history container
         this.messageContainer = container.createDiv("rag-messages");

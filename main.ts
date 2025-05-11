@@ -27,11 +27,12 @@ export default class RAGBrain extends Plugin {
 
         this.addCommand({
           id: "update-vault-index",
-          name: "Update vector version control",
+          name: "Update Vectors in Database",
           callback: () => {
             this.updateVaultIndex();
           },
         });
+
         this.registerView(
           RAG_VIEW_TYPE,
           (leaf) => new RAGBrainView(leaf, this)

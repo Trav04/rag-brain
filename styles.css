@@ -122,3 +122,32 @@
     width: 20px;
     height: 20px;
 }
+
+/* Vault operation buttons */
+.rag-button-container {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.rag-operation-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8em;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.rag-operation-button:hover {
+    background-color: var(--background-secondary);
+}
+
+.rag-operation-button svg {
+    width: 14px;
+    height: 14px;
+}
