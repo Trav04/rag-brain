@@ -38,7 +38,7 @@ export class RAG {
                 apiKey: this.geminiApiKey
             });
 
-            this.promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+            this.promptTemplate = await pull<ChatPromptTemplate>("krunal/more-crafted-rag-prompt");
             return this;
         } catch (error) {
             throw new Error(`RAG system setup failed: ${error.message}`);
