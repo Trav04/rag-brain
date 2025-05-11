@@ -9,6 +9,11 @@
 
 RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Generation (RAG) to create a personalized AI assistant that works with your vault. It enables you to chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.
 
+<div align="center">
+  <img src="imgs/Obsidian_0atx4X8msl.gif" alt="RAGBrain Demo" width="700"/>
+  <p><em>See RAGBrain in action</em></p>
+</div>
+
 ## Setup Guide
 
 ### 1. Set up Qdrant Server
