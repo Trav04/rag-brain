@@ -1,10 +1,10 @@
 # RAGBrain
 
-<div align="center"> <img src="imgs/RAGBrain.png" alt="RAGBrain Logo" width="300"/> <h3>Your personalized AI assistant for your Obsidian notes</h3> </div>
+<div align="center"> <img src="imgs/RAGBrain.png" alt="RAGBrain Logo" width="300"/> <h3>Your personalised AI assistant for your Obsidian notes</h3> </div>
 
 ## Overview
 
-RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Generation (RAG) to create a personalized AI assistant that works with your vault. It enables you to chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.
+RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Generation (RAG) to create a personalised AI assistant that works with your vault. It enables you to chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.
 
 ## Setup Guide
 
