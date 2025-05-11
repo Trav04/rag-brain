@@ -15,7 +15,7 @@ export interface RAGBrainSettings {
 export const DEFAULT_SETTINGS: RAGBrainSettings = {
     geminiApiKey: "",
     qdrantUrl: "",
-    qdrantApiKey: "",
+    qdrantApiKey: "placeholderKey1234",
     ocrEnabled: false,
     geminiEmbeddingsModel: "text-embedding-004",
     geminiOCRModel: "gemini-1.5-flash",
@@ -65,7 +65,7 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
 
         // QDrant API Key
         new Setting(containerEl)
-            .setName("QDrant API Key")
+            .setName("(DISABLED) QDrant API Key")
             .setDesc("API key for QDrant access (Optional as local instance of Qdrant doesn't require API key by default).")
             .addText((text) =>
                 text
@@ -75,6 +75,7 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
                         this.plugin.settings.qdrantApiKey = value;
                         await this.plugin.saveSettings();
                     })
+                    .setDisabled(true)
             );
 
         // OCR Toggle
@@ -94,7 +95,7 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
 
         // Gemini Embeddings Model
         new Setting(containerEl)
-            .setName("Gemini Embeddings Model")
+            .setName("(DISABLED) Gemini Embeddings Model")
             .setDesc("Model used for creating document embeddings.")
             .addText((text) =>
                 text
@@ -104,11 +105,12 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
                         this.plugin.settings.geminiEmbeddingsModel = value;
                         await this.plugin.saveSettings();
                     })
+                    .setDisabled(true)
             );
 
         // Gemini OCR Model
         new Setting(containerEl)
-            .setName("Gemini OCR Model")
+            .setName("(DISABLED) Gemini OCR Model")
             .setDesc("Model used for processing PDFs and images via OCR.")
             .addText((text) =>
                 text
@@ -118,11 +120,12 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
                         this.plugin.settings.geminiOCRModel = value;
                         await this.plugin.saveSettings();
                     })
+                    .setDisabled(true)
             );
 
         // Gemini LLM Model
         new Setting(containerEl)
-            .setName("Gemini LLM Model")
+            .setName("(DISABLED) Gemini LLM Model")
             .setDesc("Model used for response generation and retrieval.")
             .addText((text) =>
                 text
@@ -132,6 +135,7 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
                         this.plugin.settings.geminiLLMModel = value;
                         await this.plugin.saveSettings();
                     })
+                    .setDisabled(true)
             );
 
         // QDrant Collection Name
