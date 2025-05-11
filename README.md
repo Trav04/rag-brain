@@ -1,10 +1,13 @@
 # RAGBrain
 
-<div align="center"> <img src="imgs/RAGBrain.png" alt="RAGBrain Logo" width="300"/> <h3>Your personalised AI assistant for your Obsidian notes</h3> </div>
+<div align="center">
+  <img src="imgs/RAGBrain.png" alt="RAGBrain Logo" width="300"/>
+  <h3>Your personalized AI assistant for your Obsidian notes</h3>
+</div>
 
 ## Overview
 
-RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Generation (RAG) to create a personalised AI assistant that works with your vault. It enables you to chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.
+RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Generation (RAG) to create a personalized AI assistant that works with your vault. It enables you to chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.
 
 ## Setup Guide
 
@@ -31,19 +34,38 @@ After installing the plugin in Obsidian:
 3. The Qdrant URL when hosted locally is typically `http://localhost:6333`
 4. Current Embeddings Model, OCR model, and LLM model are fixed (more options coming soon)
 
-<div align="center"> <img src="imgs/Pasted image 20250511205355.png" alt="RAGBrain Settings" width="600"/> <p><em>RAGBrain plugin settings</em></p> </div>
+<div align="center">
+  <img src="imgs/Pasted image 20250511205355.png" alt="RAGBrain Settings" width="600"/>
+  <p><em>RAGBrain plugin settings</em></p>
+</div>
+
+### Why Gemini?
+
+RAGBrain currently uses Google's Gemini models because:
+
+- **Superior OCR Capabilities**: Gemini scores exceptionally high on OCR image processing tasks, making it ideal for extracting text from images in your notes
+- **High-Quality Embeddings**: Gemini embeddings provide excellent semantic representation of your content, leading to more accurate retrieval
+- **Context Understanding**: Gemini excels at understanding complex relationships between different pieces of information in your vault
+
+> **⚠️ CAUTION**: If OCR is enabled, the vectorization process may take quite a while depending on the number of images in your vault. Consider running the initial vectorization when you don't need immediate access to Obsidian.
 
 ## Usage
 
 1. Upon loading the plugin, you'll see a new brain icon added to your side panel
 2. Click on it to open the AI Chat interface
 
-<div align="center"> <img src="imgs/Pasted image 20250511210053.png" alt="RAGBrain Interface" width="600"/> <p><em>RAGBrain chat interface</em></p> </div>
+<div align="center">
+  <img src="imgs/Pasted image 20250511210053.png" alt="RAGBrain Interface" width="600"/>
+  <p><em>RAGBrain chat interface</em></p>
+</div>
 
 3. Prompt the AI chat with your questions about your notes
-    - Currently, the chat history doesn't inform future prompts
+   - Currently, the chat history doesn't inform future prompts
 
-<div align="center"> <img src="imgs/Pasted image 20250511211220.png" alt="RAGBrain Chat Example" width="600"/> <p><em>Example of RAGBrain in action</em></p> </div>
+<div align="center">
+  <img src="imgs/Pasted image 20250511211220.png" alt="RAGBrain Chat Example" width="600"/>
+  <p><em>Example of RAGBrain in action</em></p>
+</div>
 
 ## Roadmap
 
@@ -57,7 +79,8 @@ After installing the plugin in Obsidian:
 
 Contributions are most certainly welcome! This is a passion project of mine as I look to leverage AI to make my knowledge base more efficient.
 
-
 ---
 
-<div align="center"> Made with ❤️ for Obsidian users </div>
+<div align="center">
+  Made with ❤️ for Obsidian users
+</div>
