@@ -104,6 +104,26 @@ export class RAG {
   }
 
   /**
+   * Update the vaults version control json file and handle the updates. 
+   * The updates are recieved from the VersionControl class and 
+   * are handelled through the VectorManager class.
+   */
+  public async updateVaultVersionControl() {
+    const { changedFiles, deletedFiles } = await this.versionControl.updateVersionControl();
+    
+    // Handle deleted files
+    if (deletedFiles.length > 0) {
+      this.vectorManager.deleteDocuments(deletedFiles);
+    }
+
+    // Handle changed changed files
+    if (changedFiles.length > 0) {
+      this.vectorManager.deleteDocuments(changedFiles);
+      this.vectorManager.addDocuments(changedFiles);
+    }
+  }
+
+  /**
    * Performs a semantic similarity search on the vector database with the input
    * question and returns the answer.
    * 
