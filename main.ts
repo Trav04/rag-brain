@@ -1,7 +1,7 @@
 import { Plugin, Notice } from "obsidian";
-import { VersionControl } from "./vault/version-control";
-import { RAG } from "./vault/rag";
-import { VectorManager } from "./vault/vector-manager";
+import { VersionControl } from "./src/version-control";
+import { RAG } from "./src/rag";
+import { VectorManager } from "./src/vector-manager";
 import { RAGBrainSettings, DEFAULT_SETTINGS, RAGBrainSettingsTab } from "./settings";
 import { RAGBrainView, RAG_VIEW_TYPE } from "./view";
 
