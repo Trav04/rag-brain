@@ -13,7 +13,7 @@ export default class RAGBrain extends Plugin {
     private ragMaster: RAG;
 
     async onload() {
-        this.vaultPath = "C:\\Test";//(this.app.vault.adapter as any).basePath;
+        this.vaultPath = (this.app.vault.adapter as any).basePath;
         await this.loadSettings();
         this.addSettingTab(new RAGBrainSettingsTab(this.app, this));
 
