@@ -1,7 +1,7 @@
 import {
   GoogleGenAI,
   createUserContent,
-  createPartFromUri,
+  createPartFromBase64,
 } from "@google/genai";
 import { v4 as uuidv4 } from "uuid";
 import { Document } from "langchain/document";
@@ -37,6 +37,7 @@ export class GeminiLoader {
       };
       return mimeTypes[extension] || "application/octet-stream";
     }
+    
     /**
      * Parses pdf, image and .md filetypes. For PDFs and Images, Gemini
      * is prompted to OCR the text from the pdf or image.
@@ -50,21 +51,17 @@ export class GeminiLoader {
         // IMAGE & PDF FILES
         if ([".png", ".jpg", ".jpeg", ".pdf"].includes(ext)) {
           if (!this.ocrOn) return "";  // Only OCR if enabled
-          // Upload file
-          const image = await this.ai.files.upload({ file: filePath });
           
-          if (!image.uri) {
-            throw new Error(`Upload failed: no URI returned for ${filePath}`);
-          }
-
-          const mimeType = image.mimeType ?? this.getMimeType(ext);  // Get ext
-
+          // Read the file as a buffer and convert to base64
+          const fileBuffer = fs.readFileSync(filePath);
+          const base64Data = fileBuffer.toString('base64');
+          
           const response = await this.ai.models.generateContent({
             model: this.model,
             contents: [
               createUserContent([
                 prompt,
-                createPartFromUri(image.uri, mimeType),
+                createPartFromBase64(base64Data, this.getMimeType(ext)),
               ]),
             ],
           });
