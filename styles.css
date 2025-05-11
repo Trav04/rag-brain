@@ -1,52 +1,70 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
-.ai-sidebar {
-  padding: 20px;
+/* RAG Brain View Styles */
+.rag-brain-view {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
-.ai-input {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid var(--background-modifier-border);
-  border-radius: 4px;
-  resize: vertical;
+.rag-input-container {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
 }
 
-.ai-button-container {
-  display: flex;
-  justify-content: flex-end;
+.rag-question-input {
+    flex: 1;
+    min-height: 80px;
+    padding: 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    resize: vertical;
+    font-family: inherit;
 }
 
-.ai-button {
-  background-color: var(--interactive-accent);
-  color: var(--text-on-accent);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
+.rag-ask-button {
+    height: fit-content;
+    padding: 8px 16px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
 }
 
-.ai-button:hover {
-  background-color: var(--interactive-accent-hover);
+.rag-ask-button:hover {
+    opacity: 0.9;
 }
 
-.ai-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.rag-ask-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
-.ai-output {
-  margin-top: 20px;
-  white-space: pre-wrap;
-  padding: 10px;
-  background-color: var(--background-secondary);
-  border-radius: 4px;
-  min-height: 100px;
+.rag-results-container {
+    flex: 1;
+    padding: 15px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    overflow-y: auto;
+    background-color: var(--background-primary);
+}
+
+.rag-response {
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+/* Loading animation */
+@keyframes rag-thinking {
+    0% { content: '.'; }
+    33% { content: '..'; }
+    66% { content: '...'; }
+}
+
+.rag-results-container:has(:contains("Thinking"))::after {
+    content: '';
+    animation: rag-thinking 1.5s infinite;
 }

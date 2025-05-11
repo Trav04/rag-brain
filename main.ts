@@ -3,6 +3,7 @@ import { VersionControl } from "./vault/version-control";
 import { RAG } from "./vault/rag";
 import { VectorManager } from "./vault/vector-manager";
 import { RAGBrainSettings, DEFAULT_SETTINGS, RAGBrainSettingsTab } from "./settings";
+import { RAGBrainView, RAG_VIEW_TYPE } from "./view";
 
 export default class RAGBrain extends Plugin {
     settings: RAGBrainSettings;
@@ -16,12 +17,23 @@ export default class RAGBrain extends Plugin {
         await this.loadSettings();
         this.addSettingTab(new RAGBrainSettingsTab(this.app, this));
 
+        
+
         this.addCommand({
           id: "index-vault",
           name: "Vectorise Entire Vault",
           callback: () => {
             this.indexEntireVault();
           },
+        });
+
+        this.registerView(
+          RAG_VIEW_TYPE,
+          (leaf) => new RAGBrainView(leaf, this)
+        );
+
+        this.addRibbonIcon("brain", "Open RAG Brain", () => {
+          this.activateView();
         });
         console.log("Vault path:", this.vaultPath);
         console.log("Plugin loaded with settings:", this.settings);
@@ -68,6 +80,31 @@ export default class RAGBrain extends Plugin {
 
     async saveSettings() {
         await this.saveData(this.settings);
+    }
+
+    private async activateView() {
+        // Check if view is already open
+        const existingLeaves = this.app.workspace.getLeavesOfType(RAG_VIEW_TYPE);
+        if (existingLeaves.length > 0) {
+            this.app.workspace.revealLeaf(existingLeaves[0]);
+            return;
+        }
+
+        // Get right leaf - handle null case
+        const rightLeaf = this.app.workspace.getRightLeaf(false);
+        if (!rightLeaf) {
+            console.error("Could not find right leaf to open RAG Brain view");
+            return;
+        }
+
+        // Set view state
+        await rightLeaf.setViewState({
+            type: RAG_VIEW_TYPE,
+            active: true,
+        });
+
+        // Reveal the leaf
+        this.app.workspace.revealLeaf(rightLeaf);
     }
 
     /**
