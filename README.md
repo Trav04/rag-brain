@@ -1,6 +1,6 @@
 # RAGBrain
 
-<div align="center"> <img src="RAGBrain.png" alt="RAGBrain Logo" width="300"/> <h3>Your personalized AI assistant for your Obsidian notes</h3> </div>
+<div align="center"> <img src="imgs/RAGBrain.png" alt="RAGBrain Logo" width="300"/> <h3>Your personalized AI assistant for your Obsidian notes</h3> </div>
 
 ## Overview
 
@@ -31,19 +31,19 @@ After installing the plugin in Obsidian:
 3. The Qdrant URL when hosted locally is typically `http://localhost:6333`
 4. Current Embeddings Model, OCR model, and LLM model are fixed (more options coming soon)
 
-<div align="center"> <img src="Pasted image 20250511205355.png" alt="RAGBrain Settings" width="600"/> <p><em>RAGBrain plugin settings</em></p> </div>
+<div align="center"> <img src="imgs/Pasted image 20250511205355.png" alt="RAGBrain Settings" width="600"/> <p><em>RAGBrain plugin settings</em></p> </div>
 
 ## Usage
 
 1. Upon loading the plugin, you'll see a new brain icon added to your side panel
 2. Click on it to open the AI Chat interface
 
-<div align="center"> <img src="Pasted image 20250511210053.png" alt="RAGBrain Interface" width="600"/> <p><em>RAGBrain chat interface</em></p> </div>
+<div align="center"> <img src="imgs/Pasted image 20250511210053.png" alt="RAGBrain Interface" width="600"/> <p><em>RAGBrain chat interface</em></p> </div>
 
 3. Prompt the AI chat with your questions about your notes
     - Currently, the chat history doesn't inform future prompts
 
-<div align="center"> <img src="Pasted image 20250511211220.png" alt="RAGBrain Chat Example" width="600"/> <p><em>Example of RAGBrain in action</em></p> </div>
+<div align="center"> <img src="imgs/Pasted image 20250511211220.png" alt="RAGBrain Chat Example" width="600"/> <p><em>Example of RAGBrain in action</em></p> </div>
 
 ## Roadmap
 
