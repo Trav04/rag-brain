@@ -14,15 +14,15 @@ interface TrackingData {
 
 export class VersionControl {
   private vaultPath: string;
-  private fileMapMetaData: string;
+  private versionControlFilePath: string;
   private trackingData: TrackingData = { files: {} };
 
   constructor(
     vaultPath: string,
-    trackingFilePath?: string, // Optional
+    versionControlFilePath?: string, // Optional
   ) {
     this.vaultPath = vaultPath;
-    this.fileMapMetaData = trackingFilePath || 'rag-brain-version-control.json';
+    this.versionControlFilePath = versionControlFilePath || '../../../rag-brain-version-control.json';
 
   }
 
@@ -46,31 +46,36 @@ export class VersionControl {
   /**
    * Performs initial hashing of all files in the vault and generates an 
    * initial version control JSON file for future comparision when updates or
-   * deletions are made within the vault.
+   * deletions are made within the vault. Only create the file if not already
+   * created.
    */
   public async initialiseVaultVersionControl() {
-    const trackingData: TrackingData = { files: {} };
+    try {
+      await fs.promises.readFile(this.versionControlFilePath, 'utf-8');
+    } catch (error) {
+      const trackingData: TrackingData = { files: {} };
 
-    for await (const filePath of this.walkDirectory(this.vaultPath)) {
-      try {
-        const stats = await fs.promises.stat(filePath);
-        const hash = await this.getFileHash(filePath);
+      for await (const filePath of this.walkDirectory(this.vaultPath)) {
+        try {
+          const stats = await fs.promises.stat(filePath);
+          const hash = await this.getFileHash(filePath);
 
-        trackingData.files[filePath] = {
-          lastModified: stats.mtimeMs,
-          hash: hash
-        };
-        
-        // Optional: Log progress for large vaults
-        console.log(`Processed: ${filePath}`);
-      } catch (error) {
-        console.error(`Error processing file ${filePath}:`, error);
+          trackingData.files[filePath] = {
+            lastModified: stats.mtimeMs,
+            hash: hash
+          };
+          
+          // Optional: Log progress for large vaults
+          console.log(`Processed: ${filePath}`);
+        } catch (error) {
+          console.error(`Error processing file ${filePath}:`, error);
+        }
       }
-    }
 
-    // Save the initial tracking data state
-    this.trackingData = trackingData;
-    this.saveTrackingData();
+      // Save the initial tracking data state
+      this.trackingData = trackingData;
+      this.saveTrackingData();
+    }
   }
 
   /**
@@ -78,7 +83,7 @@ export class VersionControl {
    */
   private async loadTrackingData(): Promise<void> {
     try {
-      const data = await fs.promises.readFile(this.fileMapMetaData, 'utf-8');
+      const data = await fs.promises.readFile(this.versionControlFilePath, 'utf-8');
       this.trackingData = JSON.parse(data) as TrackingData;
     } catch (error) {
       console.log('No existing tracking data, starting fresh');
@@ -106,9 +111,10 @@ export class VersionControl {
    */
   private async saveTrackingData(): Promise<void> {
     await fs.promises.writeFile(
-      this.fileMapMetaData,
+      this.versionControlFilePath,
       JSON.stringify(this.trackingData, null, 2)
     );
+    console.log("Version control saved at", this.versionControlFilePath);
   }
 
   /**
@@ -121,6 +127,7 @@ export class VersionControl {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
+      if (entry.name === '.obsidian') continue; // Skip .obsidian
       const res = path.resolve(dir, entry.name);
       if (entry.isDirectory()) {
         yield* this.walkDirectory(res);  // Recurse into subdirectory
