@@ -15,6 +15,7 @@ export class VectorManager {
     private embeddings: GoogleGenerativeAIEmbeddings;
     private chunkSize: number;
     private chunkOverlap: number;
+    private splitter: RecursiveCharacterTextSplitter;
 
     constructor(
       vaultPath: string,
@@ -54,6 +55,11 @@ export class VectorManager {
           field_name: "metadata.source",  // filepath source
           field_schema: "keyword"
       })
+      // Define a splitting object to process documents
+      this.splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: this.chunkSize,
+        chunkOverlap: this.chunkOverlap
+      });
       return this;
     }
 
@@ -61,15 +67,11 @@ export class VectorManager {
      * Indexes every file in the vault from the class vault path. 
      */
     public async indexVault(): Promise<void> { 
-      // Define a splitting object to process documents
-      const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: this.chunkSize,
-        chunkOverlap: this.chunkOverlap
-      });
+
         // Use Gemini custom loader to process all document types
         const documents = await this.loadDocuments();
         // Split the document into the chunks specified in the class
-        const splitDocs = await splitter.splitDocuments(documents);
+        const splitDocs = await this.splitter.splitDocuments(documents);
         // Add the documents using the embeddings instance of the vector store
         await this.vectorStore.addDocuments(splitDocs);
 
@@ -114,10 +116,7 @@ export class VectorManager {
           }
         }))
       };
-    
-      // Use a large finite number instead of Infinity
-      const results = await this.vectorStore.client.scroll(this.qdrantCollectionName, {filter: fileFilter});
-      console.log("Filter result:", results);
+
       try {
         await this.vectorStore.client.delete(this.qdrantCollectionName, {
           filter: fileFilter,
@@ -131,10 +130,13 @@ export class VectorManager {
     
     public async addDocuments(filePaths: string[]): Promise<void> {
       const documents: Document[] = [];
-        for await (const doc of this.documentLoader.loadDocuments()) {
-            documents.push(doc);
-        }
-
+      for (const filePath of filePaths){
+        const doc = await this.documentLoader.loadSingleDocument(filePath);
+        documents.push(doc);
+      }
+      // Split the documents into chunks
+      const splitDocs = await this.splitter.splitDocuments(documents);
+      // Add the documents using the embeddings instance of the vector store
+      await this.vectorStore.addDocuments(splitDocs);
     }
-    
 }
