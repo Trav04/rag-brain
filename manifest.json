@@ -1,11 +1,11 @@
 {
-	"id": "rag-chat",
-	"name": "RAG Chat",
+	"id": "ragbrain",
+	"name": "RAGBrain",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Extend your second brain with a RAG chat.",
-	"author": "Travis",
-	"authorUrl": "https://obsidian.md",
+	"minAppVersion": "0.0.1",
+	"description": "RAGBrain leverages Retrieval-Augmented Generation (RAG) to create a personalised AI assistant that works with your vault. chat with your notes, ask questions, and get intelligent responses based on your personal knowledge base.",
+	"author": "Travis Graham",
+	"authorUrl": "https://github.com/Trav04",
 	"fundingUrl": "https://obsidian.md/pricing",
 	"isDesktopOnly": false
 }
