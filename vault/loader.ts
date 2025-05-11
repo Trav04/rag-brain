@@ -16,6 +16,7 @@ export class GeminiLoader {
 
     constructor(
         private vaultPath: string,
+        private ocrOn: boolean,
         private model: string = "gemini-2.0-flash",
         apiKey: string
     ) {
@@ -48,6 +49,7 @@ export class GeminiLoader {
       try {
         // IMAGE & PDF FILES
         if ([".png", ".jpg", ".jpeg", ".pdf"].includes(ext)) {
+          if (!this.ocrOn) return "";  // Only OCR if enabled
           // Upload file
           const image = await this.ai.files.upload({ file: filePath });
           

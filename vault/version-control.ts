@@ -44,6 +44,36 @@ export class VersionControl {
   }
 
   /**
+   * Performs initial hashing of all files in the vault and generates an 
+   * initial version control JSON file for future comparision when updates or
+   * deletions are made within the vault.
+   */
+  public async initialiseVaultVersionControl() {
+    const trackingData: TrackingData = { files: {} };
+
+    for await (const filePath of this.walkDirectory(this.vaultPath)) {
+      try {
+        const stats = await fs.promises.stat(filePath);
+        const hash = await this.getFileHash(filePath);
+
+        trackingData.files[filePath] = {
+          lastModified: stats.mtimeMs,
+          hash: hash
+        };
+        
+        // Optional: Log progress for large vaults
+        console.log(`Processed: ${filePath}`);
+      } catch (error) {
+        console.error(`Error processing file ${filePath}:`, error);
+      }
+    }
+
+    // Save the initial tracking data state
+    this.trackingData = trackingData;
+    this.saveTrackingData();
+  }
+
+  /**
    * Looks for a tracking json file or creates a new one if it doesn't exist
    */
   private async loadTrackingData(): Promise<void> {
@@ -134,33 +164,6 @@ export class VersionControl {
       .filter(path => !currentFiles.has(path));
 
     return { changedFiles, deletedFiles };
-  }
-
-    /**
-   * Performs initial hashing of all files in the vault
-   */
-  private async initializeVaultHashing() {
-    const trackingData: TrackingData = { files: {} };
-
-    for await (const filePath of this.walkDirectory(this.vaultPath)) {
-      try {
-        const stats = await fs.promises.stat(filePath);
-        const hash = await this.getFileHash(filePath);
-
-        trackingData.files[filePath] = {
-          lastModified: stats.mtimeMs,
-          hash: hash
-        };
-        
-        // Optional: Log progress for large vaults
-        console.log(`Processed: ${filePath}`);
-      } catch (error) {
-        console.error(`Error processing file ${filePath}:`, error);
-      }
-    }
-
-    // Save the initial tracking data state
-    this.trackingData = trackingData;
   }
 
   /**

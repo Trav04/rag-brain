@@ -1,11 +1,10 @@
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { Document } from "langchain/document";
-import type { Schemas as QdrantSchemas } from "@qdrant/js-client-rest";
 import { GeminiLoader } from "./loader";
 import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
 import { QdrantVectorStore } from "@langchain/qdrant";
 import { TaskType } from "@google/generative-ai";
-import * as path from 'path';
+
 
 
 export class VectorManager {
@@ -13,6 +12,7 @@ export class VectorManager {
     private documentLoader: GeminiLoader;
     private vectorStore: QdrantVectorStore;
     private embeddings: GoogleGenerativeAIEmbeddings;
+    private ocrOn: boolean;
     private chunkSize: number;
     private chunkOverlap: number;
     private splitter: RecursiveCharacterTextSplitter;
@@ -21,6 +21,7 @@ export class VectorManager {
       vaultPath: string,
       geminiApiKey: string,
       embeddingsModelName: "text-embedding-004",
+      ocrOn: boolean,
       ocrModelName: "gemini-2.0-flash",  // default model used
       private qdrantCollectionName: string,
       chunkSize: 1000,
@@ -29,6 +30,7 @@ export class VectorManager {
       this.vaultPath = vaultPath;
       this.chunkOverlap = chunkOverlap;
       this.chunkSize = chunkSize;
+      this.ocrOn = ocrOn;
       // Instantiate embeddings model
       this.embeddings = new GoogleGenerativeAIEmbeddings({
         model: embeddingsModelName,
@@ -36,7 +38,7 @@ export class VectorManager {
       });
       // Instantiate custom document loader
       this.documentLoader = new GeminiLoader(
-        this.vaultPath, ocrModelName, geminiApiKey);
+        this.vaultPath, this.ocrOn, ocrModelName, geminiApiKey);
     }
 
     public async init() {
