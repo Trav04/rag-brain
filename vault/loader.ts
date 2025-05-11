@@ -93,14 +93,14 @@ export class GeminiLoader {
       const entries = fs.readdirSync(dir, { withFileTypes: true });
     
       for (const entry of entries) {
-        if (entry.name === '.obsidian') continue; // Skip .obsidian directory
+        if (entry.name === '.obsidian' || entry.name === '.trash') continue; // Skip .obsidian directory
         const fullPath = path.join(dir, entry.name);
 
         if (entry.isDirectory()) {
           yield* this.loadDocuments(fullPath); // Recurse into subdirectory
         } else if (entry.isFile()) {
           const content = await this.processFile(fullPath);
-          if (!content) continue;
+          if (!content || content.trim().length == 0) continue; // Skip empty files
 
           yield new Document({
             pageContent: content,

@@ -127,7 +127,7 @@ export class VersionControl {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
-      if (entry.name === '.obsidian') continue; // Skip .obsidian
+      if (entry.name === '.obsidian' || entry.name === '.trash') continue; // Skip .obsidian
       const res = path.resolve(dir, entry.name);
       if (entry.isDirectory()) {
         yield* this.walkDirectory(res);  // Recurse into subdirectory

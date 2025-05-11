@@ -78,15 +78,17 @@ export class VectorManager {
         const splitDocs = await this.splitter.splitDocuments(documents);
         // Add the documents using the embeddings instance of the vector store
         // Push docs individually to avoid crashing out on single failure 
-        const successfulDocs: typeof splitDocs = [];
-        for (const doc of splitDocs) {
-            try {
-                await this.vectorStore.addDocuments([doc]); // use one at a time
-                successfulDocs.push(doc);
-            } catch (err) { // TODO Determine what type of docs gemini api rejects and handle
-                console.error("Failed to embed or store document chunk:", doc.metadata?.source, err);
-            }
-        }
+        // console.log(splitDocs);
+        await this.vectorStore.addDocuments(splitDocs); // use one at a time
+        // const successfulDocs: typeof splitDocs = [];
+        // for (const doc of splitDocs) {
+        //     try {
+        //         await this.vectorStore.addDocuments([doc]); // use one at a time
+        //         successfulDocs.push(doc);
+        //     } catch (err) { // TODO Determine what type of docs gemini api rejects and handle
+        //         console.error("Failed to embed or store document chunk:", doc.metadata?.source, err);
+        //     }
+        // }
 
     }
 

@@ -82,6 +82,9 @@ export default class RAGBrain extends Plugin {
         await this.saveData(this.settings);
     }
 
+    /**
+     * Attach the view to the application view.
+     */
     private async activateView() {
         // Check if view is already open
         const existingLeaves = this.app.workspace.getLeavesOfType(RAG_VIEW_TYPE);
