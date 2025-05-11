@@ -52,7 +52,7 @@ export default class RAGBrain extends Plugin {
           200
         ).init();
 
-      this.versionControl = new VersionControl(this.vaultPath) // TODO add setting to set the version control path
+      this.versionControl = new VersionControl(this.vaultPath, this.vaultPath + "/rag-brain-version-control.json") // TODO add setting to set the version control path
 
       this.ragMaster = await new RAG(this.settings.geminiApiKey, 
         this.settings.geminiLLMModel,
@@ -60,6 +60,10 @@ export default class RAGBrain extends Plugin {
         this.versionControl
       ).init();
       console.log("Initialised class variables");
+
+      await this.initialiseVersionControl()
+      console.log("Initialised version control");
+
     }
 
     async saveSettings() {
@@ -73,5 +77,15 @@ export default class RAGBrain extends Plugin {
       await this.vectorManager.indexVault();
     }
 
+    async initialiseVersionControl() {
+      await this.versionControl.initialiseVaultVersionControl();
+    }
 
+    async updateVaultIndex() {
+      await this.ragMaster.updateVaultVersionControl();
+    }
+
+    public async queryVault(question: string): Promise<{answer: string; sources: string[];}> {
+      return await this.ragMaster.query(question);
+    }
 }
