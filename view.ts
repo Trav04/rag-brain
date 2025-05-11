@@ -1,100 +1,83 @@
-import { ItemView, WorkspaceLeaf } from 'obsidian';
+import { ItemView, WorkspaceLeaf } from "obsidian";
+import  RAGBrain  from "main";
 
-export class RAGSidebarView extends ItemView {
-  private inputEl: HTMLTextAreaElement;
-  private outputEl: HTMLElement;
-  private buttonEl: HTMLButtonElement;
-  private settings: RAGChatPluginSettings;
+export const RAG_VIEW_TYPE = "rag-brain-view";
 
-  constructor(leaf: WorkspaceLeaf, settings: RAGChatPluginSettings) {
-    super(leaf);
-    this.settings = settings;
-  }
+export class RAGBrainView extends ItemView {
+    private plugin: RAGBrain;
+    private questionInput: HTMLTextAreaElement;
+    private resultDiv: HTMLDivElement;
+    private askButton: HTMLButtonElement;
 
-  getViewType() {
-    return 'ai-sidebar';
-  }
-
-  getDisplayText() {
-    return 'AI Assistant';
-  }
-
-  getIcon(): string {
-    return 'bot';
-  }
-
-  async onOpen() {
-    const container = this.containerEl.children[1];
-    container.empty();
-    container.addClass('ai-sidebar');
-
-    // Create input area
-    this.inputEl = container.createEl('textarea', {
-      attr: {
-        placeholder: 'Ask AI anything...',
-        rows: '5'
-      },
-      cls: 'ai-input'
-    });
-
-    // Create button container
-    const buttonContainer = container.createDiv('ai-button-container');
-    
-    this.buttonEl = buttonContainer.createEl('button', {
-      text: 'Ask AI',
-      cls: 'ai-button'
-    });
-
-    // Create output area
-    this.outputEl = container.createEl('div', {
-      cls: 'ai-output'
-    });
-
-    // Add event listener
-    this.buttonEl.addEventListener('click', async () => {
-      await this.handleAIRequest();
-    });
-  }
-
-  async handleAIRequest() {
-    const prompt = this.inputEl.value.trim();
-    if (!prompt) return;
-
-    this.buttonEl.disabled = true;
-    this.buttonEl.textContent = 'Processing...';
-    this.outputEl.setText('');
-
-    try {
-      const response = await this.getAIResponse(prompt);
-      this.outputEl.setText(response);
-    } catch (error) {
-      this.outputEl.setText(`Error: ${error.message}`);
-    } finally {
-      this.buttonEl.disabled = false;
-      this.buttonEl.textContent = 'Ask AI';
+    constructor(leaf: WorkspaceLeaf, plugin: RAGBrain) {
+        super(leaf);
+        this.plugin = plugin;
     }
-  }
 
-  async getAIResponse(prompt: string): Promise<string> {
-    const params: RequestUrlParam = {
-      url: 'https://api.openai.com/v1/chat/completions',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.settings.apiKey}`
-      },
-      body: JSON.stringify({
-        model: this.settings.model,
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.7
-      })
-    };
+    getViewType() {
+        return RAG_VIEW_TYPE;
+    }
 
-    const response = await requestUrl(params);
-    return response.json.choices[0].message.content;
-  }
+    getDisplayText() {
+        return "RAG Brain";
+    }
 
-  updateSettings(settings: AIPluginSettings) {
-    this.settings = settings;
-  }
+    getIcon(): string {
+        return "brain";
+    }
+
+    async onOpen() {
+        const container = this.containerEl.children[1];
+        container.empty();
+        container.addClass("rag-brain-view");
+
+        // Create input container
+        const inputContainer = container.createDiv("rag-input-container");
+        
+        // Question input
+        this.questionInput = inputContainer.createEl("textarea", {
+            placeholder: "Enter your question...",
+            cls: "rag-question-input"
+        });
+        
+        // Ask button
+        this.askButton = inputContainer.createEl("button", {
+            text: "Ask",
+            cls: "rag-ask-button"
+        });
+        this.askButton.addEventListener("click", async () => await this.handleQuestion());
+
+        // Results container
+        this.resultDiv = container.createDiv("rag-results-container");
+    }
+
+    async onClose() {
+        // Clean up elements
+        this.questionInput.remove();
+        this.askButton.remove();
+        this.resultDiv.remove();
+    }
+
+    private async handleQuestion() {
+        const question = this.questionInput.value.trim();
+        if (!question) return;
+
+        this.askButton.disabled = true;
+        this.questionInput.disabled = true;
+        this.resultDiv.textContent = "Thinking...";
+
+        try {
+            const response = await this.plugin.queryVault(question);
+            this.resultDiv.empty();
+            this.resultDiv.createEl("div", {
+                text: response.answer + "\nSources:\n" + response.sources,
+                cls: "rag-response"
+            });
+        } catch (error) {
+            this.resultDiv.textContent = `Error: ${error.message}`;
+        } finally {
+            this.askButton.disabled = false;
+            this.questionInput.disabled = false;
+        }
+    }
 }
