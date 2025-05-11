@@ -128,6 +128,10 @@ export class VectorManager {
       }
     }
     
+    /**
+     * Adds documents to the vector store as specified by an array of file paths
+     * @param filePaths an array of files to be added to the vector store
+     */
     public async addDocuments(filePaths: string[]): Promise<void> {
       const documents: Document[] = [];
       for (const filePath of filePaths){
