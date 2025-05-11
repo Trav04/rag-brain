@@ -20,9 +20,9 @@ export class VectorManager {
     constructor(
       vaultPath: string,
       geminiApiKey: string,
-      embeddingsModelName: "text-embedding-004",
+      embeddingsModelName: string,
       ocrOn: boolean,
-      ocrModelName: "gemini-2.0-flash",  // default model used
+      ocrModelName: string,  // default model used
       private qdrantCollectionName: string,
       chunkSize: 1000,
       chunkOverlap: 200

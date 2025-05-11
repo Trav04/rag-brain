@@ -1,4 +1,4 @@
-import 'dotenv/config';
+// import 'dotenv/config';
 import { VectorManager } from "./vector-manager";
 import { VersionControl } from "./version-control"
 import { Document } from "langchain/document";
@@ -16,7 +16,7 @@ export class RAG {
 
     constructor(
         geminiApiKey: string,
-        llmModelName: "gemini-1.5-flash",
+        llmModelName: string,
         vectorManager: VectorManager,
         versionControl: VersionControl,
     ) {
