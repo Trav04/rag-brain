@@ -29,6 +29,7 @@ docker run -p 6333:6333 -p 6334:6334 \
     -v "$(pwd)/qdrant_storage:/qdrant/storage:z" \
     qdrant/qdrant
 ```
+Ensure the server is running before moving onto the next step.
 
 ### 2. Configure RAGBrain Plugin
 
