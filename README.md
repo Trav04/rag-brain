@@ -14,7 +14,7 @@ RAGBrain is a powerful plugin for Obsidian that leverages Retrieval-Augmented Ge
   <p><em>See RAGBrain in action</em></p>
 </div>
 
-## Setup Guide
+## 🔨 Setup Guide
 
 ### 1. Set up Qdrant Server
 
