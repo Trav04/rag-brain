@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, Notice } from "obsidian";
 import type RAGBrainPlugin from "./main";
 
 export interface RAGBrainSettings {
@@ -151,5 +151,25 @@ export class RAGBrainSettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+
+        new Setting(containerEl)
+          .setName("Initialize Plugin Services")
+          .setDesc("Click to initialize the plugin after configuring your settings")
+          .addButton((button) =>
+              button
+                  .setButtonText("Initialize")
+                  .setCta()
+                  .onClick(async () => {
+                      try {
+                          const success = await this.plugin.enablePluginServices();
+                          if (success) {
+                              new Notice("✅ Plugin services initialized successfully!");
+                          }
+                      } catch (error) {
+                          new Notice("❌ Failed to initialize services. Check console for details.");
+                          console.error("Initialization error:", error);
+                      }
+                  })
+          );
     }
 }

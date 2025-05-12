@@ -33,6 +33,14 @@ export default class RAGBrain extends Plugin {
           },
         });
 
+        this.addCommand({
+          id: "enable-services",
+          name: "Initialize RAG Brain Services",
+          callback: async () => {
+              await this.enablePluginServices();
+          },
+      });
+
         this.registerView(
           RAG_VIEW_TYPE,
           (leaf) => new RAGBrainView(leaf, this)
@@ -47,10 +55,27 @@ export default class RAGBrain extends Plugin {
 
     async loadSettings() {
         this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-        if (this.settings.geminiApiKey && this.settings.qdrantApiKey && this.settings.qdrantUrl) {
-          await this.init();
-        }
+        // if (this.settings.geminiApiKey && this.settings.qdrantApiKey && this.settings.qdrantUrl) {
+        //   await this.init();
+        // }
     }
+
+    async enablePluginServices() {
+    if (!this.settings.geminiApiKey || !this.settings.qdrantUrl) {
+        new Notice("❌ Please configure Gemini API Key and Qdrant URL in settings first");
+        return false;
+    }
+    
+    try {
+        await this.init();
+        new Notice("✅ RAG Brain services initialized successfully");
+        return true;
+    } catch (error) {
+        new Notice("❌ Failed to initialize RAG Brain services. Check console for details.");
+        console.error("Initialization error:", error);
+        return false;
+    }
+}
       
 
     /**
@@ -144,7 +169,12 @@ export default class RAGBrain extends Plugin {
      * where appropriate. Updates the version control JSON file.
      */
     async updateVaultIndex() {
-      await this.ragMaster.updateVaultVersionControl();
+      try {
+        await this.ragMaster.updateVaultVersionControl();
+        new Notice("✅ Qdrant updated with alll new or modified files");
+      } catch (error) {
+        new Notice("❌ Qdrant not updated view error in console!");
+      }
     }
 
     public async queryVault(question: string): Promise<{answer: string; sources: string[];}> {
