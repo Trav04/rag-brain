@@ -30,8 +30,20 @@ docker run -p 6333:6333 -p 6334:6334 \
     qdrant/qdrant
 ```
 Ensure the server is running before moving onto the next step.
+### 2. Manually install RAGBrain 
+To manually install the RAGBrain plugin:
 
-### 2. Configure RAGBrain Plugin
+1. Head to the **[Releases](https://github.com/Trav04/rag-brain/releases/tag/beta)** section of this repository
+2. Download the following three files from the latest release:
+   - `main.js`
+   - `manifest.json`
+   - `styles.css`
+3. Create a new folder named `rag-brain` inside your `.obsidian/plugins` directory (create the plugins folder if it doesn't exist).
+4. Paste the three downloaded files into the `rag-brain` folder.
+5. Reload Obsidian and enable the **RAGBrain** plugin from the settings panel.
+
+
+### 3. Configure RAGBrain Plugin
 
 After installing the plugin in Obsidian:
 
@@ -45,15 +57,6 @@ After installing the plugin in Obsidian:
   <p><em>RAGBrain plugin settings</em></p>
 </div>
 
-### Why Gemini?
-
-RAGBrain currently uses Google's Gemini models because:
-
-- **Superior OCR Capabilities**: Gemini scores exceptionally high on OCR image processing tasks, making it ideal for extracting text from images in your notes
-- **High-Quality Embeddings**: Gemini embeddings provide excellent semantic representation of your content, leading to more accurate retrieval
-- **Context Understanding**: Gemini excels at understanding complex relationships between different pieces of information in your vault
-
-> **⚠️ CAUTION**: If OCR is enabled, the vectorization process may take quite a while depending on the number of images in your vault. Consider running the initial vectorization when you don't need immediate access to Obsidian.
 
 ## Usage
 
@@ -72,6 +75,29 @@ RAGBrain currently uses Google's Gemini models because:
   <img src="imgs/Pasted image 20250511211220.png" alt="RAGBrain Chat Example" width="600"/>
   <p><em>Example of RAGBrain in action</em></p>
 </div>
+
+## Why Gemini?
+
+RAGBrain currently uses Google's Gemini models because:
+
+- **Superior OCR Capabilities**: Gemini scores exceptionally high on OCR image processing tasks, making it ideal for extracting text from images in your notes
+- **High-Quality Embeddings**: Gemini embeddings provide excellent semantic representation of your content, leading to more accurate retrieval
+- **Context Understanding**: Gemini excels at understanding complex relationships between different pieces of information in your vault
+
+> **⚠️ CAUTION**: If OCR is enabled, the vectorization process may take quite a while depending on the number of images in your vault. Consider running the initial vectorization when you don't need immediate access to Obsidian.
+
+## 🔄 Custom Version Control
+
+RAGBrain includes a lightweight custom version control system that tracks changes to your vault without relying on Git. This ensures the embedding pipeline and Qdrant index stay in sync efficiently.
+
+### How it works
+
+- **File Hashing**: Each file in your vault is hashed using SHA-256 to detect content changes.
+- **Timestamp Checking**: Last modified timestamps are compared to detect updates.
+- **Deletion Detection**: Files that no longer exist in the vault are automatically removed from tracking.
+- **Efficient Updates**: Only changed or deleted files are reprocessed, keeping performance high.
+
+The plugin maintains a file called `rag-brain-version-control.json` in your `.obsidian` folder, which stores hashes and timestamps for each tracked file. This allows RAGBrain to determine exactly which files need re-indexing.
 
 ## Roadmap
 
